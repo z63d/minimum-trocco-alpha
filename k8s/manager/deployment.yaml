@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manager
+  labels:
+    app: manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manager
+  template:
+    metadata:
+      labels:
+        app: manager
+    spec:
+      serviceAccountName: manager
+      containers:
+        - name: manager
+          image: mt-manager
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_HOST
+              value: postgresql
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: postgres
+            - name: DB_NAME
+              value: mt
+            - name: AWS_ACCESS_KEY_ID
+              value: dummy
+            - name: AWS_SECRET_ACCESS_KEY
+              value: dummy
+            - name: AWS_REGION
+              value: ap-northeast-1
+            - name: SQS_ENDPOINT
+              value: http://elasticmq:9324
+            - name: SQS_QUEUE_URL
+              value: http://elasticmq:9324/000000000000/jobs
+            - name: SQS_DLQ_URL
+              value: http://elasticmq:9324/000000000000/jobs-dlq
+            - name: WORKER_IMAGE
+              value: mt-worker:latest
+            - name: WORKER_NAMESPACE
+              value: default
+            - name: POLL_INTERVAL_SEC
+              value: "3"

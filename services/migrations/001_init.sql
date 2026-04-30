@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS job_definitions (
+  id                 SERIAL PRIMARY KEY,
+  name               TEXT NOT NULL,
+  dummy_duration_sec INT NOT NULL DEFAULT 10,
+  failure_rate       FLOAT NOT NULL DEFAULT 0.0,
+  created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id                 SERIAL PRIMARY KEY,
+  job_definition_id  INT NOT NULL REFERENCES job_definitions(id),
+  status             TEXT NOT NULL DEFAULT 'queued',
+  k8s_job_name       TEXT,
+  started_at         TIMESTAMP,
+  finished_at        TIMESTAMP,
+  created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+CREATE INDEX IF NOT EXISTS idx_jobs_job_definition_id ON jobs(job_definition_id);
+
+INSERT INTO job_definitions (name, dummy_duration_sec, failure_rate) VALUES
+  ('quick-success', 5, 0.0),
+  ('slow-job', 30, 0.0),
+  ('flaky-job', 10, 0.5)
+ON CONFLICT DO NOTHING;

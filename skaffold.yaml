@@ -1,0 +1,61 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: mt
+build:
+  tagPolicy:
+    customTemplate:
+      template: latest
+  local:
+    push: false
+    useBuildkit: true
+  artifacts:
+    - image: mt-api
+      context: services
+      docker:
+        dockerfile: Dockerfile.api
+    - image: mt-manager
+      context: services
+      docker:
+        dockerfile: Dockerfile.manager
+    - image: mt-worker
+      context: services
+      docker:
+        dockerfile: Dockerfile.worker
+    - image: mt-ui
+      context: ui
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - k8s/postgresql/*.yaml
+    - k8s/elasticmq/*.yaml
+    - k8s/api/*.yaml
+    - k8s/manager/*.yaml
+    - k8s/ui/*.yaml
+deploy:
+  # mt-worker は manifest の image: フィールドに現れない（manager が env から動的に Job を作る）
+  # ため skaffold の自動 kind load が走らない。デプロイ前にホストから明示的に load する。
+  kubectl:
+    hooks:
+      before:
+        - host:
+            command: ["sh", "-c", "kind load docker-image mt-worker:latest --name mt"]
+            os: [darwin, linux]
+portForward:
+  - resourceType: service
+    resourceName: api
+    port: 8080
+    localPort: 8080
+  - resourceType: service
+    resourceName: ui
+    port: 80
+    localPort: 3000
+  - resourceType: service
+    resourceName: postgresql
+    port: 5432
+    localPort: 5432
+  - resourceType: service
+    resourceName: elasticmq
+    port: 9324
+    localPort: 9324

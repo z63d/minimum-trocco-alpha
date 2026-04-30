@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticmq
+  labels:
+    app: elasticmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticmq
+  template:
+    metadata:
+      labels:
+        app: elasticmq
+    spec:
+      containers:
+        - name: elasticmq
+          image: softwaremill/elasticmq-native:1.6.11
+          ports:
+            - containerPort: 9324
+          volumeMounts:
+            - name: config
+              mountPath: /opt/elasticmq.conf
+              subPath: elasticmq.conf
+          readinessProbe:
+            tcpSocket:
+              port: 9324
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: elasticmq
