@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: elasticmq
-          image: softwaremill/elasticmq-native:1.6.11
+          image: softwaremill/elasticmq-native:1.7.1
           ports:
             - containerPort: 9324
           volumeMounts:
