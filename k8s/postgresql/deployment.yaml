@@ -25,7 +25,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: postgres
             - name: POSTGRES_DB
-              value: mt
+              value: mintrcc
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -33,7 +33,7 @@ spec:
               mountPath: /docker-entrypoint-initdb.d
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "postgres", "-d", "mt"]
+              command: ["pg_isready", "-U", "postgres", "-d", "mintrcc"]
             initialDelaySeconds: 5
             periodSeconds: 5
       volumes:

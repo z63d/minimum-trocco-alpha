@@ -17,7 +17,7 @@ spec:
       serviceAccountName: manager
       containers:
         - name: manager
-          image: mt-manager
+          image: mintrcc-manager
           imagePullPolicy: IfNotPresent
           env:
             - name: DB_HOST
@@ -29,7 +29,7 @@ spec:
             - name: DB_PASSWORD
               value: postgres
             - name: DB_NAME
-              value: mt
+              value: mintrcc
             - name: AWS_ACCESS_KEY_ID
               value: dummy
             - name: AWS_SECRET_ACCESS_KEY
@@ -43,7 +43,7 @@ spec:
             - name: SQS_DLQ_URL
               value: http://elasticmq:9324/000000000000/jobs-dlq
             - name: WORKER_IMAGE
-              value: mt-worker:latest
+              value: mintrcc-worker:latest
             - name: WORKER_NAMESPACE
               value: default
             - name: POLL_INTERVAL_SEC

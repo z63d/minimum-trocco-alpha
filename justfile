@@ -1,6 +1,6 @@
 set shell := ["bash", "-cu"]
 
-cluster_name := "mt"
+cluster_name := "mintrcc"
 
 # クラスタ作成
 cluster-up:

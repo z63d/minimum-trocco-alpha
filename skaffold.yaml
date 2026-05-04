@@ -1,7 +1,7 @@
 apiVersion: skaffold/v4beta13
 kind: Config
 metadata:
-  name: mt
+  name: mintrcc
 build:
   tagPolicy:
     customTemplate:
@@ -10,19 +10,19 @@ build:
     push: false
     useBuildkit: true
   artifacts:
-    - image: mt-api
+    - image: mintrcc-api
       context: services
       docker:
         dockerfile: Dockerfile.api
-    - image: mt-manager
+    - image: mintrcc-manager
       context: services
       docker:
         dockerfile: Dockerfile.manager
-    - image: mt-worker
+    - image: mintrcc-worker
       context: services
       docker:
         dockerfile: Dockerfile.worker
-    - image: mt-ui
+    - image: mintrcc-ui
       context: ui
       docker:
         dockerfile: Dockerfile
@@ -34,13 +34,13 @@ manifests:
     - k8s/manager/*.yaml
     - k8s/ui/*.yaml
 deploy:
-  # mt-worker は manifest の image: フィールドに現れない（manager が env から動的に Job を作る）
+  # mintrcc-worker は manifest の image: フィールドに現れない（manager が env から動的に Job を作る）
   # ため skaffold の自動 kind load が走らない。デプロイ前にホストから明示的に load する。
   kubectl:
     hooks:
       before:
         - host:
-            command: ["sh", "-c", "kind load docker-image mt-worker:latest --name mt"]
+            command: ["sh", "-c", "kind load docker-image mintrcc-worker:latest --name mintrcc"]
             os: [darwin, linux]
 portForward:
   - resourceType: service

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: mt-api
+          image: mintrcc-api
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -32,7 +32,7 @@ spec:
             - name: DB_PASSWORD
               value: postgres
             - name: DB_NAME
-              value: mt
+              value: mintrcc
             - name: AWS_ACCESS_KEY_ID
               value: dummy
             - name: AWS_SECRET_ACCESS_KEY

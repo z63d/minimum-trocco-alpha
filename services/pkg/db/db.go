@@ -15,7 +15,7 @@ func Open(ctx context.Context) (*sql.DB, error) {
 	port := env("DB_PORT", "5432")
 	user := env("DB_USER", "postgres")
 	pass := env("DB_PASSWORD", "postgres")
-	name := env("DB_NAME", "mt")
+	name := env("DB_NAME", "mintrcc")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, name)
 
