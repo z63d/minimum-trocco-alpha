@@ -29,6 +29,7 @@ tempo:
     processor:
       service_graphs: {}
       span_metrics: {}
+      local_blocks: {}
     storage:
       path: /var/tempo/generator/wal
     traces_storage:
@@ -38,12 +39,18 @@ tempo:
   # trace は受信しても service_graph / span_metrics が生成されない。
   # grafana/tempo (single binary) chart の正しい key は tempo.overrides.defaults。
   # tempo-distributed chart の global_overrides とは異なるので注意。
+  #
+  # processor 別の役割:
+  # - service-graphs : trace を解析して edge metric を Mimir に push
+  # - span-metrics   : RED metric (rate/error/duration) を Mimir に push
+  # - local-blocks   : 直近 trace を Tempo 内にローカル保持し TraceQL metrics クエリに応答 (Grafana Traces Drilldown が必要とする)
   overrides:
     defaults:
       metrics_generator:
         processors:
           - service-graphs
           - span-metrics
+          - local-blocks
 
 service:
   type: ClusterIP
