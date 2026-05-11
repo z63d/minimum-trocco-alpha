@@ -29,7 +29,14 @@ tempo:
     processor:
       service_graphs: {}
       span_metrics: {}
-      local_blocks: {}
+      local_blocks:
+        # デフォルト true は SERVER kind 以外の span を破棄してしまうので
+        # PRODUCER / CONSUMER / CLIENT / INTERNAL の span に対する
+        # TraceQL metrics ({} | rate() 等) が常に 0 になる。
+        filter_server_spans: false
+        # 完了した local block を長期 storage にも書く。
+        # メモリから flush された過去の span に対しても metrics クエリが応答できるようにする。
+        flush_to_storage: true
     storage:
       path: /var/tempo/generator/wal
     traces_storage:
