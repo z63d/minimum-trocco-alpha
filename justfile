@@ -80,7 +80,7 @@ helm-minio:
     --wait --timeout 5m
 
 helm-loki:
-  helm upgrade --install loki grafana/loki \
+  helm upgrade --install loki grafana-community/loki \
     --namespace o11y \
     --version 6.55.0 \
     --values k8s/helm/values/loki.yaml \
@@ -108,9 +108,9 @@ helm-otel-collector:
     --wait --timeout 5m
 
 helm-tempo:
-  helm upgrade --install tempo grafana/tempo \
+  helm upgrade --install tempo grafana-community/tempo \
     --namespace o11y \
-    --version 1.24.4 \
+    --version 1.26.7 \
     --values k8s/helm/values/tempo.yaml \
     --wait --timeout 5m
 
