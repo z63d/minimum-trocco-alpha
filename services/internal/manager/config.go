@@ -13,6 +13,7 @@ type Config struct {
 	WorkerImage     string
 	WorkerNamespace string
 	PollIntervalSec int
+	OTelEndpoint    string
 }
 
 func LoadConfig() (*Config, error) {
@@ -48,5 +49,6 @@ func LoadConfig() (*Config, error) {
 		WorkerImage:     image,
 		WorkerNamespace: ns,
 		PollIntervalSec: poll,
+		OTelEndpoint:    os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
 	}, nil
 }

@@ -1,0 +1,82 @@
+alloy:
+  configMap:
+    content: |
+      discovery.kubernetes "app_pods" {
+        role = "pod"
+        namespaces {
+          names = ["default"]
+        }
+      }
+
+      discovery.relabel "app_pods" {
+        targets = discovery.kubernetes.app_pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label  = "service_name"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["service_name"]
+          regex         = ""
+          action        = "drop"
+        }
+      }
+
+      loki.source.kubernetes "app_pods" {
+        targets    = discovery.relabel.app_pods.output
+        forward_to = [loki.process.parse_json.receiver]
+      }
+
+      loki.process "parse_json" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.json {
+          expressions = {
+            level    = "level",
+            trace_id = "trace_id",
+          }
+        }
+
+        stage.labels {
+          values = {
+            severity = "level",
+          }
+        }
+
+        stage.structured_metadata {
+          values = {
+            trace_id = "trace_id",
+          }
+        }
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.o11y.svc:3100/loki/api/v1/push"
+        }
+      }
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+
+controller:
+  type: daemonset
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

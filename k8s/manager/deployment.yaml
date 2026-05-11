@@ -48,3 +48,7 @@ spec:
               value: default
             - name: POLL_INTERVAL_SEC
               value: "3"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: otel-collector-opentelemetry-collector.o11y.svc:4317
+            - name: OTEL_GO_X_EXEMPLAR
+              value: "true"

@@ -1,0 +1,63 @@
+minio:
+  enabled: false
+
+kafka:
+  enabled: false
+
+mimir:
+  structuredConfig:
+    multitenancy_enabled: false
+    limits:
+      max_global_exemplars_per_user: 100000
+      native_histograms_ingestion_enabled: true
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: minio.o11y.svc:9000
+          access_key_id: ${accessKeyId}
+          secret_access_key: ${secretAccessKey}
+          insecure: true
+    blocks_storage:
+      s3:
+        bucket_name: mimir
+    ingest_storage:
+      enabled: false
+    ingester:
+      push_grpc_method_enabled: true
+      ring:
+        replication_factor: 1
+
+global:
+  extraEnvFrom:
+    - secretRef:
+        name: minio-secret
+
+nginx:
+  enabled: true
+
+distributor:
+  replicas: 1
+ingester:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+store_gateway:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+compactor:
+  replicas: 1
+querier:
+  replicas: 1
+query_frontend:
+  replicas: 1
+query_scheduler:
+  replicas: 1
+ruler:
+  enabled: false
+alertmanager:
+  enabled: false
+
+metaMonitoring:
+  enabled: false

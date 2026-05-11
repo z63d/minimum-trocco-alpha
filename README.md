@@ -32,7 +32,16 @@ just cluster-up
 just dev          # skaffold dev: ビルド + デプロイ + port-forward
 ```
 
-ブラウザで http://localhost:3000 を開く。
+ブラウザで http://localhost:3000 (UI) を開く。
+
+## LGTM 観測スタック
+
+```bash
+just o11y-up      # MinIO/Loki/Alloy/Mimir/OTel/Tempo/Grafana 一括起動 (helm)
+just o11y-down    # 一括削除
+```
+
+Grafana: http://localhost:3001 (admin / grafana)
 
 ## クリーンアップ
 

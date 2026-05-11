@@ -1,0 +1,27 @@
+existingSecret: minio-secret
+
+replicas: 1
+mode: standalone
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+buckets:
+  - name: loki
+    policy: none
+  - name: mimir
+    policy: none
+  - name: tempo
+    policy: none
+
+service:
+  type: ClusterIP
+  port: 9000

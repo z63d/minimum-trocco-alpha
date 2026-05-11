@@ -12,6 +12,7 @@ import (
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/z63d/minimum-trocco-alpha/services/internal/api/handler"
 )
@@ -41,11 +42,9 @@ func New(ctx context.Context, db *sql.DB, logger *slog.Logger) (*Server, error) 
 		}
 	})
 
-	h := &handler.Handler{
-		DB:       db,
-		SQS:      sqsClient,
-		QueueURL: queueURL,
-		Logger:   logger,
+	h, err := handler.New(db, sqsClient, queueURL, logger)
+	if err != nil {
+		return nil, err
 	}
 
 	port := os.Getenv("PORT")
@@ -58,7 +57,7 @@ func New(ctx context.Context, db *sql.DB, logger *slog.Logger) (*Server, error) 
 		addr: addr,
 		srv: &http.Server{
 			Addr:              addr,
-			Handler:           h.Routes(),
+			Handler:           otelhttp.NewHandler(h.Routes(), "api"),
 			ReadHeaderTimeout: 10 * time.Second,
 		},
 		logger: logger,

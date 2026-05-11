@@ -41,3 +41,87 @@ status:
 # Worker Job 一覧
 jobs:
   kubectl get jobs -l app=worker
+
+# ===========================
+# LGTM stack (o11y namespace)
+# ===========================
+
+# 一括セットアップ
+o11y-up: helm-repos namespaces helm-minio helm-loki helm-alloy helm-mimir helm-otel-collector helm-tempo helm-grafana
+
+# 全部一括削除
+o11y-down:
+  -helm uninstall grafana --namespace o11y
+  -helm uninstall tempo --namespace o11y
+  -helm uninstall otel-collector --namespace o11y
+  -helm uninstall mimir --namespace o11y
+  -helm uninstall alloy --namespace o11y
+  -helm uninstall loki --namespace o11y
+  -helm uninstall minio --namespace o11y
+  -kubectl delete -f k8s/config/
+  -kubectl delete -f k8s/namespaces.yaml
+
+namespaces:
+  kubectl apply -f k8s/namespaces.yaml
+
+helm-repos:
+  helm repo add grafana           https://grafana.github.io/helm-charts                      2>/dev/null || true
+  helm repo add grafana-community https://grafana-community.github.io/helm-charts            2>/dev/null || true
+  helm repo add minio             https://charts.min.io/                                     2>/dev/null || true
+  helm repo add open-telemetry    https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
+  helm repo update
+
+helm-minio:
+  kubectl apply -f k8s/config/minio-secret.yaml
+  helm upgrade --install minio minio/minio \
+    --namespace o11y \
+    --version 5.4.0 \
+    --values k8s/helm/values/minio.yaml \
+    --wait --timeout 5m
+
+helm-loki:
+  helm upgrade --install loki grafana/loki \
+    --namespace o11y \
+    --version 6.55.0 \
+    --values k8s/helm/values/loki.yaml \
+    --wait --timeout 5m
+
+helm-alloy:
+  helm upgrade --install alloy grafana/alloy \
+    --namespace o11y \
+    --version 1.7.0 \
+    --values k8s/helm/values/alloy.yaml \
+    --wait --timeout 5m
+
+helm-mimir:
+  helm upgrade --install mimir grafana/mimir-distributed \
+    --namespace o11y \
+    --version 6.0.6 \
+    --values k8s/helm/values/mimir.yaml \
+    --wait --timeout 5m
+
+helm-otel-collector:
+  helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+    --namespace o11y \
+    --version 0.150.1 \
+    --values k8s/helm/values/otel-collector.yaml \
+    --wait --timeout 5m
+
+helm-tempo:
+  helm upgrade --install tempo grafana/tempo \
+    --namespace o11y \
+    --version 1.24.4 \
+    --values k8s/helm/values/tempo.yaml \
+    --wait --timeout 5m
+
+helm-grafana:
+  kubectl apply -f k8s/config/grafana-secret.yaml
+  kubectl create configmap grafana-dashboards \
+    --from-file=k8s/helm/dashboards/ \
+    --namespace o11y \
+    --dry-run=client -o yaml | kubectl apply -f -
+  helm upgrade --install grafana grafana-community/grafana \
+    --namespace o11y \
+    --version 12.1.1 \
+    --values k8s/helm/values/grafana.yaml \
+    --wait --timeout 5m
