@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: o11y
+data:
+  jobs-overview.json: |
+    {
+      "title": "Jobs Overview",
+      "uid": "jobs-overview",
+      "schemaVersion": 39,
+      "version": 0,
+      "tags": ["mintrcc"],
+      "timezone": "browser",
+      "time": { "from": "now-1h", "to": "now" },
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "type": "text",
+          "title": "Placeholder",
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+          "options": {
+            "mode": "markdown",
+            "content": "Phase B (OTel計装) 完了後にp99レイテンシ/Request Rate/Exemplarパネルを追加する。"
+          }
+        }
+      ]
+    }
