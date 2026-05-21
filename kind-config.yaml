@@ -4,8 +4,13 @@ name: mintrcc
 nodes:
   - role: control-plane
     extraPortMappings:
+      # Grafana
       - containerPort: 30080
         hostPort: 3001
+        protocol: TCP
+      # Argo CD
+      - containerPort: 30090
+        hostPort: 3002
         protocol: TCP
   - role: worker
   - role: worker

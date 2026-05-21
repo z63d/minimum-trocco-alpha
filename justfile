@@ -69,6 +69,7 @@ helm-repos:
   helm repo add grafana-community https://grafana-community.github.io/helm-charts            2>/dev/null || true
   helm repo add minio             https://charts.min.io/                                     2>/dev/null || true
   helm repo add open-telemetry    https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
+  helm repo add argo              https://argoproj.github.io/argo-helm                       2>/dev/null || true
   helm repo update
 
 helm-minio:
@@ -125,3 +126,38 @@ helm-grafana:
     --version 12.1.1 \
     --values k8s/helm/values/grafana.yaml \
     --wait --timeout 5m
+
+# ===========================
+# Argo CD (argocd namespace)
+# ===========================
+
+# Argo CD インストール + repo 認証登録 + App-of-Apps 適用
+# 事前に GITHUB_TOKEN を export しておくこと
+argocd-up: helm-repos namespaces
+  helm upgrade --install argocd argo/argo-cd \
+    --namespace argocd \
+    --version 9.5.14 \
+    --values k8s/helm/values/argocd.yaml \
+    --wait --timeout 5m
+  kubectl create secret generic argocd-repo-creds \
+    --namespace argocd \
+    --from-literal=type=git \
+    --from-literal=url=https://github.com/z63d/minimum-trocco-alpha.git \
+    --from-literal=username="z63d" \
+    --from-literal=password="${GITHUB_TOKEN}" \
+    --dry-run=client -o yaml \
+    | kubectl label --local -f - argocd.argoproj.io/secret-type=repository -o yaml \
+    | kubectl apply -f -
+  kubectl apply -f k8s/argocd/root.yaml
+
+# 初期 admin パスワード表示
+argocd-password:
+  kubectl get secret argocd-initial-admin-secret \
+    --namespace argocd \
+    -o jsonpath="{.data.password}" | base64 -d && echo
+
+# Argo CD 削除
+argocd-down:
+  -kubectl delete -f k8s/argocd/root.yaml
+  -helm uninstall argocd --namespace argocd
+  -kubectl delete namespace argocd
