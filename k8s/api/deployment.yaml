@@ -44,7 +44,7 @@ spec:
             - name: SQS_QUEUE_URL
               value: http://elasticmq:9324/000000000000/jobs
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: otel-collector-opentelemetry-collector.o11y.svc:4317
+              value: otel-gateway.o11y.svc:4317
             - name: OTEL_GO_X_EXEMPLAR
               value: "true"
           readinessProbe:

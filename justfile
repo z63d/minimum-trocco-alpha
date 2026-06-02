@@ -46,13 +46,14 @@ jobs:
 # LGTM stack (o11y namespace)
 # ===========================
 
-# 一括セットアップ
-o11y-up: helm-repos namespaces helm-minio helm-loki helm-alloy helm-mimir helm-otel-collector helm-tempo helm-grafana
+# 一括セットアップ (collector → gateway の順で起動)
+o11y-up: helm-repos namespaces helm-minio helm-loki helm-alloy helm-mimir helm-otel-collector helm-otel-gateway helm-tempo helm-grafana
 
 # 全部一括削除
 o11y-down:
   -helm uninstall grafana --namespace o11y
   -helm uninstall tempo --namespace o11y
+  -helm uninstall otel-gateway --namespace o11y
   -helm uninstall otel-collector --namespace o11y
   -helm uninstall mimir --namespace o11y
   -helm uninstall alloy --namespace o11y
@@ -106,6 +107,13 @@ helm-otel-collector:
     --namespace o11y \
     --version 0.150.1 \
     --values k8s/helm/values/otel-collector.yaml \
+    --wait --timeout 5m
+
+helm-otel-gateway:
+  helm upgrade --install otel-gateway open-telemetry/opentelemetry-collector \
+    --namespace o11y \
+    --version 0.150.1 \
+    --values k8s/helm/values/otel-gateway.yaml \
     --wait --timeout 5m
 
 helm-tempo:

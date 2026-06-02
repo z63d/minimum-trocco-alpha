@@ -1,9 +1,22 @@
 mode: deployment
-
-replicaCount: 1
+replicaCount: 2
+fullnameOverride: otel-collector
 
 image:
   repository: otel/opentelemetry-collector-contrib
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/instance: otel-collector
 
 config:
   receivers:
@@ -34,8 +47,6 @@ config:
         enabled: true
       tls:
         insecure_skip_verify: true
-    debug:
-      verbosity: basic
 
   service:
     pipelines:
@@ -67,3 +78,21 @@ resources:
   limits:
     cpu: 500m
     memory: 512Mi
+
+# gateway の loadbalancing exporter が DNS で全 pod IP を解決できるよう headless Service を追加
+extraManifests:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: otel-collector-headless
+      namespace: o11y
+    spec:
+      clusterIP: None
+      selector:
+        app.kubernetes.io/name: opentelemetry-collector
+        app.kubernetes.io/instance: otel-collector
+      ports:
+        - name: otlp-grpc
+          port: 4317
+          targetPort: 4317
+          protocol: TCP
