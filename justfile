@@ -43,13 +43,18 @@ jobs:
   kubectl get jobs -l app=worker
 
 # ===========================
-# LGTM stack (o11y namespace)
+# Nnamespace
 # ===========================
 
-# 一括セットアップ (collector → gateway の順で起動)
-o11y-up: helm-repos namespaces helm-minio helm-loki helm-alloy helm-mimir helm-otel-collector helm-otel-gateway helm-tempo helm-grafana
+namespaces:
+  kubectl apply -f k8s/namespaces.yaml
 
-# 全部一括削除
+# ===========================
+# LGTM stack
+# ===========================
+
+o11y-up: helm-repos namespaces helm-minio helm-loki helm-mimir helm-tempo helm-alloy helm-otel-collector helm-otel-gateway helm-grafana
+
 o11y-down:
   -helm uninstall grafana --namespace o11y
   -helm uninstall tempo --namespace o11y
@@ -61,9 +66,6 @@ o11y-down:
   -helm uninstall minio --namespace o11y
   -kubectl delete -f k8s/config/
   -kubectl delete -f k8s/namespaces.yaml
-
-namespaces:
-  kubectl apply -f k8s/namespaces.yaml
 
 helm-repos:
   helm repo add grafana           https://grafana.github.io/helm-charts                      2>/dev/null || true
@@ -133,4 +135,3 @@ helm-grafana:
     --version 12.1.1 \
     --values k8s/helm/values/grafana.yaml \
     --wait --timeout 5m
-
