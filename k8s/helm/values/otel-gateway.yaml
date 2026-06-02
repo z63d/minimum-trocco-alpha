@@ -31,6 +31,11 @@ config:
     memory_limiter:
       check_interval: 1s
       limit_mib: 200
+    filter/healthz:
+      error_mode: ignore
+      traces:
+        span:
+          - 'attributes["url.path"] == "/healthz"'
 
   exporters:
     # traces: traceID consistent hashing → 同一 trace を同じ backend pod へ
@@ -53,7 +58,7 @@ config:
     pipelines:
       traces:
         receivers: [otlp]
-        processors: [memory_limiter]
+        processors: [memory_limiter, filter/healthz]
         exporters: [loadbalancing]
       metrics:
         receivers: [otlp]
