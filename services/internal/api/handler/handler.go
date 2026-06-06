@@ -197,6 +197,7 @@ func (h *Handler) runJobDefinition(w http.ResponseWriter, r *http.Request) {
 			semconv.MessagingSystem("aws_sqs"),
 			semconv.MessagingDestinationName("jobs"),
 			attribute.String("messaging.operation", "publish"),
+			attribute.Int64("job_id", jobID),
 		),
 	)
 

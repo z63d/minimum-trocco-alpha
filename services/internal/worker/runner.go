@@ -21,9 +21,13 @@ import (
 )
 
 func Run(ctx context.Context, logger *slog.Logger) error {
-	jobID := os.Getenv("JOB_ID")
-	if jobID == "" {
+	jobIDStr := os.Getenv("JOB_ID")
+	if jobIDStr == "" {
 		return errors.New("JOB_ID is required")
+	}
+	jobID, err := strconv.ParseInt(jobIDStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid JOB_ID=%q", jobIDStr)
 	}
 
 	durStr := os.Getenv("DUMMY_DURATION_SEC")
@@ -53,7 +57,7 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 			attribute.String("messaging.system", "k8s_job"),
 			attribute.String("messaging.destination", "worker"),
 			attribute.String("messaging.operation", "process"),
-			attribute.String("job_id", jobID),
+			attribute.Int64("job_id", jobID),
 			attribute.Int("duration_sec", dur),
 			attribute.Float64("failure_rate", failureRate),
 		),
@@ -67,7 +71,7 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 	defer span.End()
 
 	logger.InfoContext(ctx, "worker started",
-		slog.String("job_id", jobID),
+		slog.Int64("job_id", jobID),
 		slog.Int("duration_sec", dur),
 		slog.Float64("failure_rate", failureRate),
 	)
@@ -88,11 +92,11 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 		err := errors.New("dummy failure")
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "intentional dummy failure")
-		logger.ErrorContext(ctx, "worker failing intentionally", slog.String("job_id", jobID))
+		logger.ErrorContext(ctx, "worker failing intentionally", slog.Int64("job_id", jobID))
 		return err
 	}
 
-	logger.InfoContext(ctx, "worker completed", slog.String("job_id", jobID))
+	logger.InfoContext(ctx, "worker completed", slog.Int64("job_id", jobID))
 	return nil
 }
 
