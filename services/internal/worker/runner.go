@@ -42,8 +42,12 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	tracer := otel.Tracer("worker")
-	// CONSUMER span: manager の PRODUCER span (worker dispatch) とペアになる。
-	ctx, span := tracer.Start(ctx, "worker run",
+
+	// CONSUMER span: worker は独自の trace を開始し、manager の PRODUCER span
+	// (worker dispatch) を SpanLink で参照する。これにより Tempo では
+	// service.name="worker" を root とした独立したトレースとして表示され、
+	// リンク経由で api→manager トレースに辿れる。
+	opts := []trace.SpanStartOption{
 		trace.WithSpanKind(trace.SpanKindConsumer),
 		trace.WithAttributes(
 			attribute.String("messaging.system", "k8s_job"),
@@ -53,7 +57,13 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 			attribute.Int("duration_sec", dur),
 			attribute.Float64("failure_rate", failureRate),
 		),
-	)
+	}
+	if remoteSpanCtx := trace.SpanContextFromContext(ctx); remoteSpanCtx.IsValid() {
+		opts = append(opts, trace.WithLinks(trace.Link{SpanContext: remoteSpanCtx}))
+	}
+	// context.Background() を渡すことで新規 trace_id を生成し、親子関係を断ち切る。
+	workerCtx, span := tracer.Start(context.Background(), "worker run", opts...)
+	ctx = workerCtx
 	defer span.End()
 
 	logger.InfoContext(ctx, "worker started",
