@@ -64,6 +64,11 @@ alloy:
         }
       }
 
+      loki.source.kubernetes_events "kubernetes_events" {
+        namespaces = ["default", "kube-system"]
+        forward_to = [loki.write.default.receiver]
+      }
+
 rbac:
   create: true
 
