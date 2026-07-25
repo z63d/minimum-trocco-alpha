@@ -64,6 +64,20 @@ alloy:
         }
       }
 
+      prometheus.scrape "kube_state_metrics" {
+        targets = [{
+          __address__ = "kube-state-metrics.o11y.svc:8080",
+        }]
+        forward_to     = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+      }
+
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://mimir-gateway.o11y.svc/api/v1/push"
+        }
+      }
+
       loki.source.kubernetes_events "kubernetes_events" {
         namespaces = ["default", "kube-system"]
         forward_to = [loki.write.default.receiver]
