@@ -31,6 +31,10 @@ loki:
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
+    retention_period: 72h
+  compactor:
+    retention_enabled: true
+    delete_request_store: filesystem
   ingester:
     chunk_idle_period: 1m
     max_chunk_age: 2m

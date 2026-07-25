@@ -10,6 +10,7 @@ mimir:
     limits:
       max_global_exemplars_per_user: 100000
       native_histograms_ingestion_enabled: true
+      compactor_blocks_retention_period: 72h
     common:
       storage:
         backend: s3
