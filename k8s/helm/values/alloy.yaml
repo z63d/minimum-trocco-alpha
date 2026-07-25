@@ -72,6 +72,32 @@ alloy:
         scrape_interval = "30s"
       }
 
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      discovery.relabel "kubelet_cadvisor" {
+        targets = discovery.kubernetes.nodes.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      prometheus.scrape "kubelet_cadvisor" {
+        targets         = discovery.relabel.kubelet_cadvisor.output
+        job_name        = "kubelet"
+        metrics_path    = "/metrics/cadvisor"
+        scheme          = "https"
+        scrape_interval = "30s"
+        tls_config {
+          insecure_skip_verify = true
+        }
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        forward_to        = [prometheus.remote_write.mimir.receiver]
+      }
+
       prometheus.remote_write "mimir" {
         endpoint {
           url = "http://mimir-gateway.o11y.svc/api/v1/push"
@@ -85,6 +111,15 @@ alloy:
 
 rbac:
   create: true
+  extraClusterRoleRules:
+    # discovery.kubernetes "nodes" で kubelet のエンドポイントを列挙するために必要
+    - apiGroups: [""]
+      resources: ["nodes", "nodes/proxy", "nodes/metrics"]
+      verbs: ["get", "list", "watch"]
+    # prometheus.scrape "kubelet_cadvisor" が kubelet の /metrics/cadvisor を直接 HTTP GET するために必要
+    # K8s RBAC はリソースだけでなく非リソース URL へのアクセスも制御する
+    - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+      verbs: ["get"]
 
 serviceAccount:
   create: true
