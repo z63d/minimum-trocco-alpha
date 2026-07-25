@@ -7,7 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/XSAM/otelsql"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 func Open(ctx context.Context) (*sql.DB, error) {
@@ -19,7 +21,7 @@ func Open(ctx context.Context) (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, name)
 
-	conn, err := sql.Open("pgx", dsn)
+	conn, err := otelsql.Open("pgx", dsn, otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
