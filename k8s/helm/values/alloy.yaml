@@ -1,4 +1,10 @@
 alloy:
+  extraEnv:
+    # kubelet cadvisor scrape を自ノードに限定するために使用
+    - name: KUBERNETES_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
   configMap:
     content: |
       discovery.kubernetes "app_pods" {
@@ -74,6 +80,11 @@ alloy:
 
       discovery.kubernetes "nodes" {
         role = "node"
+        // 自ノードのみに絞る。KUBERNETES_NODE_NAME は Downward API で注入
+        selectors {
+          role  = "node"
+          field = "metadata.name=" + sys.env("KUBERNETES_NODE_NAME")
+        }
       }
 
       discovery.relabel "kubelet_cadvisor" {
