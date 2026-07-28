@@ -48,6 +48,13 @@ func main() {
 	}
 	defer conn.Close()
 
+	plainConn, err := db.OpenPlain(ctx)
+	if err != nil {
+		log.Error("db open failed", slog.Any("err", err))
+		os.Exit(1)
+	}
+	defer plainConn.Close()
+
 	sqsClient, err := manager.NewSQSClient(ctx, cfg.SQSEndpoint)
 	if err != nil {
 		log.Error("sqs client failed", slog.Any("err", err))
@@ -66,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 	watcher := &manager.Watcher{
-		DB: conn, K8s: k8s, Cfg: cfg, Logger: log.With(slog.String("component", "watcher")),
+		DB: plainConn, K8s: k8s, Cfg: cfg, Logger: log.With(slog.String("component", "watcher")),
 	}
 
 	var wg sync.WaitGroup

@@ -13,6 +13,14 @@ import (
 )
 
 func Open(ctx context.Context) (*sql.DB, error) {
+	return open(ctx, true)
+}
+
+func OpenPlain(ctx context.Context) (*sql.DB, error) {
+	return open(ctx, false)
+}
+
+func open(ctx context.Context, withOtel bool) (*sql.DB, error) {
 	host := env("DB_HOST", "postgresql")
 	port := env("DB_PORT", "5432")
 	user := env("DB_USER", "postgres")
@@ -21,7 +29,15 @@ func Open(ctx context.Context) (*sql.DB, error) {
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, name)
 
-	conn, err := otelsql.Open("pgx", dsn, otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
+	var (
+		conn *sql.DB
+		err  error
+	)
+	if withOtel {
+		conn, err = otelsql.Open("pgx", dsn, otelsql.WithAttributes(semconv.DBSystemPostgreSQL))
+	} else {
+		conn, err = sql.Open("pgx", dsn)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
