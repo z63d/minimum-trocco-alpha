@@ -71,6 +71,8 @@ datasources:
             datasourceUid: loki
             filterByTraceID: true
             customQuery: false
+            spanStartTimeShift: "-1m"
+            spanEndTimeShift: "1m"
             tags:
               - key: service.name
                 value: service_name
